@@ -1,72 +1,47 @@
-// 1. THE HUMAN SPEC (The "Receiving Antenna")
-const HUMAN_ANTENNAS = {
-    "Looming": { n: 1.10, c: 0.04, desc: "Perception of approach/size" },
-    "Loudness": { n: 0.67, c: 0.048, desc: "Perception of volume" },
-    "Brightness": { n: 0.33, c: 0.08, desc: "Perception of light intensity" }
-};
-
-// 2. THE WORDS (The "Target Sensations" - defined as % of human scale)
-const DICTIONARY = {
-    "Attention": { 
-        targets: { "Looming": 0.4, "Loudness": 0.2 }, 
-        description: "A gentle nudge for the user to look up." 
-    },
-    "Alert": { 
-        targets: { "Looming": 0.8, "Loudness": 0.7 }, 
-        description: "High intensity, high urgency." 
-    }
-};
-
-// 3. THE ROBOTS (The "Toolkits")
-const ROBOTS = {
-    "Tall-Bot": {
-        capabilities: {
-            "Telescopic Spine": { antenna: "Looming", max_output: 100 },
-            "Speaker": { antenna: "Loudness", max_output: 80 }
-        }
-    },
-    "Small-Box": {
-        capabilities: {
-            "Speaker": { antenna: "Loudness", max_output: 110 },
-            "LED Ring": { antenna: "Brightness", max_output: 500 }
-        }
-    }
-};
-
-// 4. THE TRANSLATION FUNCTION
+// Function to translate a word's target sensations into robot-specific efforts
 function translateWord(wordName, robotName) {
     const word = DICTIONARY[wordName];
     const robot = ROBOTS[robotName];
     let translation = [];
 
-    for (let antenna in word.targets) {
-        const targetSensation = word.targets[antenna];
+    if (!word || !robot) {
+        console.error("Word or Robot not found.");
+        return [];
+    }
+
+    for (const antenna in word.targets) {
+        const targetSensation = word.targets[antenna]; // 0-1 scale
         const spec = HUMAN_ANTENNAS[antenna];
         
-        // Find if robot has a tool for this antenna
-        const toolName = Object.keys(robot.capabilities).find(t => robot.capabilities[t].antenna === antenna);
+        // Find if robot has a tool for this specific antenna
+        const toolEntry = Object.entries(robot.capabilities).find(([toolName, cap]) => cap.antenna === antenna);
 
-        if (toolName) {
-            // Apply Stevens' Power Law Inverse to find required physical effort
-            // E = S^(1/n)
-            const requiredEffort = Math.pow(targetSensation, 1 / spec.n);
+        if (toolEntry) {
+            const [toolName, capability] = toolEntry;
+            
+            // Apply Stevens' Power Law Inverse: E = S^(1/n)
+            // Sensation (S) is on a 0-1 scale. We want to find the required physical effort (E).
+            const requiredEffortNormalized = Math.pow(targetSensation, 1 / spec.n);
+            
+            // Scale required effort to robot's max_output
+            const requiredEffortRaw = requiredEffortNormalized * capability.max_output;
+
             translation.push({
                 tool: toolName,
                 antenna: antenna,
-                effort_percent: (requiredEffort * 100).toFixed(1)
+                effort_percent: (requiredEffortNormalized * 100).toFixed(1), // % of normalized max effort
+                raw_output: requiredEffortRaw.toFixed(2), // Actual physical output needed
+                max_output: capability.max_output // Robot's max output for reference
             });
         } else {
-            // COMPENSATION LOGIC: If robot lacks the tool, search for a secondary "Affect"
+            // COMPENSATION LOGIC: This is where you'd implement cross-modal compensation
+            // For now, it's simply marked as missing.
             translation.push({
-                tool: "None",
+                tool: "N/A",
                 antenna: antenna,
-                status: "MISSING - Needs Compensation"
+                status: "MISSING - Robot lacks this capability."
             });
         }
     }
     return translation;
 }
-
-effortSlider.oninput = calculatePerception;
-select.onchange = calculatePerception;
-calculatePerception();
