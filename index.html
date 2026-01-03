@@ -2,39 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Robot Language: Word-to-Word Translator</title>
+    <title>Robot Language Translator</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Cross-Robot Word Transition</h1>
+        <h1>Robot-Human Word Translator</h1>
         
         <div class="control-panel card">
-            <div class="input-group">
-                <label>From Word (Start State):</label>
-                <select id="startWord"></select>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>From (Start State):</label>
+                    <select id="startWord"></select>
+                </div>
+                <div class="input-group">
+                    <label>To (New Word):</label>
+                    <select id="endWord"></select>
+                </div>
             </div>
-            <div class="input-group">
-                <label>To Word (End State):</label>
-                <select id="endWord"></select>
-            </div>
-            <button id="transitionBtn" class="primary-btn">Execute Transition</button>
+            <button id="transitionBtn" class="primary-btn">Execute Cross-Robot Transition</button>
         </div>
 
         <div class="comparison-grid">
             <div class="robot-column card">
+                <label>Robot A:</label>
                 <select id="robot1Select" class="robot-picker"></select>
                 <canvas id="canvas1"></canvas>
                 <div id="log1" class="instruction-log"></div>
             </div>
             <div class="robot-column card">
+                <label>Robot B:</label>
                 <select id="robot2Select" class="robot-picker"></select>
                 <canvas id="canvas2"></canvas>
                 <div id="log2" class="instruction-log"></div>
             </div>
         </div>
     </div>
+
     <script src="data.js"></script>
     <script src="engine.js"></script>
 </body>
