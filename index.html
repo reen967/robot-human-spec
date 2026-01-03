@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Human Spec Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Robot-to-Human Translation Engine</h1>
+        <p><i>Applying Psychophysics and MHP Constraints to Robot Output</i></p>
+
+        <div class="dashboard">
+            <div class="controls">
+                <label for="antennaSelect">Select Human Antenna:</label>
+                <select id="antennaSelect"></select>
+
+                <label for="effortRange">Robot Effort (Input Intensity): <span id="effortVal">50</span>%</label>
+                <input type="range" id="effortRange" min="0" max="100" value="50">
+            </div>
+
+            <div class="output">
+                <h3>Perceptual Interpretation</h3>
+                <div class="result-box">
+                    <p>Subjective Sensation (S): <strong id="sensationOut">0</strong></p>
+                    <p>Weber Threshold (ΔI): <span id="weberOut">0</span></p>
+                    <p>MHP Sampling Rate (τp): <span id="mhpOut">0</span> ms</p>
+                </div>
+                <div id="statusLabel" class="status">Initializing...</div>
+            </div>
+        </div>
+
+        <canvas id="perceptionCurve"></canvas>
+    </div>
+    <script src="engine.js"></script>
+</body>
+</html>
