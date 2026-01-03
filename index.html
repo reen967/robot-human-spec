@@ -2,38 +2,37 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Robot Language Engine</title>
+    <title>Robot Language: Word-to-Word Translator</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
-        <nav>
-            <a href="index.html" class="active">Translator</a>
-            <a href="dictionary.html">Dictionary</a>
-        </nav>
-
-        <div class="main-grid">
-            <div class="controls card">
-                <h3>Translation Settings</h3>
-                <label>Select Word:</label>
-                <select id="wordSelect"></select>
-                
-                <label>Target Robot:</label>
-                <select id="robotSelect"></select>
-                
-                <button id="playBtn" class="primary-btn">Play Word</button>
+        <h1>Cross-Robot Word Transition</h1>
+        
+        <div class="control-panel card">
+            <div class="input-group">
+                <label>From Word (Start State):</label>
+                <select id="startWord"></select>
             </div>
-
-            <div class="visualizer card">
-                <h3>Sensation vs. Effort</h3>
-                <canvas id="plotCanvas"></canvas>
+            <div class="input-group">
+                <label>To Word (End State):</label>
+                <select id="endWord"></select>
             </div>
+            <button id="transitionBtn" class="primary-btn">Execute Transition</button>
         </div>
 
-        <div id="log" class="card">
-            <h4>Real-time Instruction Stream:</h4>
-            <div id="outputStream"></div>
+        <div class="comparison-grid">
+            <div class="robot-column card">
+                <select id="robot1Select" class="robot-picker"></select>
+                <canvas id="canvas1"></canvas>
+                <div id="log1" class="instruction-log"></div>
+            </div>
+            <div class="robot-column card">
+                <select id="robot2Select" class="robot-picker"></select>
+                <canvas id="canvas2"></canvas>
+                <div id="log2" class="instruction-log"></div>
+            </div>
         </div>
     </div>
     <script src="data.js"></script>
