@@ -1,80 +1,86 @@
 let charts = {};
 
-document.addEventListener('DOMContentLoaded', () => {
-    setupUI();
-    document.getElementById('transitionBtn').onclick = runComparison;
-});
-
-function setupUI() {
-    const sw = document.getElementById('startWord');
-    const ew = document.getElementById('endWord');
+window.onload = () => {
+    // Populate Select Menus
+    const sWord = document.getElementById('startWord');
+    const eWord = document.getElementById('endWord');
     const r1 = document.getElementById('robot1Select');
     const r2 = document.getElementById('robot2Select');
 
     Object.keys(DICTIONARY).forEach(w => {
-        sw.add(new Option(w, w));
-        ew.add(new Option(w, w));
+        sWord.add(new Option(w, w));
+        eWord.add(new Option(w, w));
     });
+    eWord.selectedIndex = 1; // Default to different words
+
     Object.keys(ROBOTS).forEach(r => {
         r1.add(new Option(r, r));
         r2.add(new Option(r, r));
     });
-    
+    r2.selectedIndex = 1; // Default to different robots
+
+    // Initialize Charts
     charts.robot1 = initChart('canvas1');
     charts.robot2 = initChart('canvas2');
-}
 
-function initChart(id) {
-    return new Chart(document.getElementById(id), {
+    document.getElementById('transitionBtn').onclick = runTranslation;
+    runTranslation(); // Run once on load
+};
+
+function initChart(canvasId) {
+    return new Chart(document.getElementById(canvasId), {
         type: 'line',
-        data: { labels: [], datasets: [
-            { label: 'Perceived Sensation', borderColor: '#facc15', data: [] },
-            { label: 'Physical Effort', borderColor: '#38bdf8', data: [], borderDash: [5, 5] }
-        ]},
-        options: { scales: { y: { min: 0, max: 1.2 } } }
+        data: {
+            labels: Array.from({length: 21}, (_, i) => i * 5 + "%"),
+            datasets: [
+                { label: 'Perceived Sensation (The Word)', borderColor: '#facc15', data: [], tension: 0.4 },
+                { label: 'Robot Effort (The Physical)', borderColor: '#38bdf8', borderDash: [5, 5], data: [], tension: 0.4 }
+            ]
+        },
+        options: { responsive: true, scales: { y: { min: 0, max: 1 } } }
     });
 }
 
-function runComparison() {
-    const start = DICTIONARY[document.getElementById('startWord').value];
-    const end = DICTIONARY[document.getElementById('endWord').value];
+function runTranslation() {
+    const startKey = document.getElementById('startWord').value;
+    const endKey = document.getElementById('endWord').value;
     
-    processRobotTransition('robot1', document.getElementById('robot1Select').value, start, end);
-    processRobotTransition('robot2', document.getElementById('robot2Select').value, start, end);
+    updateRobot('robot1', document.getElementById('robot1Select').value, startKey, endKey);
+    updateRobot('robot2', document.getElementById('robot2Select').value, startKey, endKey);
 }
 
-function processRobotTransition(chartId, robotKey, startWord, endWord) {
-    const robot = ROBOTS[robotKey];
-    const chart = charts[chartId];
-    const log = document.getElementById(chartId === 'canvas1' ? 'log1' : 'log2');
-    
-    chart.data.labels = [];
-    chart.data.datasets[0].data = [];
-    chart.data.datasets[1].data = [];
+function updateRobot(chartKey, robotName, sKey, eKey) {
+    const robot = ROBOTS[robotName];
+    const start = DICTIONARY[sKey];
+    const end = DICTIONARY[eKey];
+    const chart = charts[chartKey];
+    const log = document.getElementById(chartKey === 'robot1' ? 'log1' : 'log2');
 
-    const steps = 30;
-    const slopeFunc = SLOPES[endWord.slope];
+    // Pick the first capability as the primary "antenna" for the demo
+    const toolName = Object.keys(robot.capabilities)[0];
+    const antennaName = robot.capabilities[toolName];
+    const n = HUMAN_ANTENNAS[antennaName].n;
 
-    // We analyze the primary antenna of the end word
-    const primaryAntenna = Object.keys(endWord.targets)[0];
-    const antennaSpec = HUMAN_ANTENNAS[primaryAntenna];
-    const startSensation = startWord.targets[primaryAntenna] || 0;
-    const endSensation = endWord.targets[primaryAntenna];
+    const sVal = start[antennaName] || 0;
+    const eVal = end[antennaName] || 0;
 
-    for (let i = 0; i <= steps; i++) {
-        let t = i / steps;
-        // Calculate where we are in the transition curve
-        let currentSensation = startSensation + (endSensation - startSensation) * slopeFunc(t);
-        
-        // Translate to physical effort
-        let effort = Math.pow(currentSensation, 1 / antennaSpec.n);
+    let sensationData = [];
+    let effortData = [];
 
-        chart.data.labels.push(i);
-        chart.data.datasets[0].data.push(currentSensation);
-        chart.data.datasets[1].data.push(effort);
+    for (let i = 0; i <= 20; i++) {
+        let t = i / 20;
+        // Linear transition in sensation space
+        let s = sVal + (eVal - sVal) * t;
+        // Inverse Stevens' Power Law to find required Robot Effort
+        let effort = Math.pow(s, 1 / n);
+
+        sensationData.push(s);
+        effortData.push(effort);
     }
+
+    chart.data.datasets[0].data = sensationData;
+    chart.data.datasets[1].data = effortData;
     chart.update();
 
-    const tool = Object.keys(robot.capabilities).find(k => robot.capabilities[k].antenna === primaryAntenna);
-    log.innerHTML = tool ? `Using <strong>${tool}</strong> to bridge ${startSensation} → ${endSensation}` : "Capability missing for this transition.";
+    log.innerHTML = `TRANSLATION: To move <strong>${sKey} → ${eKey}</strong>, ${robotName} uses <strong>${toolName}</strong> adjusted to human ${antennaName} sensitivity (n=${n}).`;
 }
