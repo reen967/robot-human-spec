@@ -1,11 +1,8 @@
-body { background: #0f172a; color: white; font-family: sans-serif; padding: 20px; }
-.container { max-width: 900px; margin: auto; }
-nav { margin-bottom: 20px; }
-nav a { color: #38bdf8; margin-right: 15px; text-decoration: none; font-weight: bold; }
-.active { border-bottom: 2px solid #38bdf8; }
-.main-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
-.card { background: #1e293b; padding: 20px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 20px;}
-label { display: block; margin: 10px 0 5px; color: #94a3b8; }
-select, button { width: 100%; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
-button { background: #38bdf8; border: none; font-weight: bold; cursor: pointer; }
-#outputStream { font-family: monospace; color: #10b981; }
+body { background: #0f172a; color: #f8fafc; font-family: sans-serif; }
+.container { max-width: 1100px; margin: auto; padding: 20px; }
+.card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 20px; }
+.comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.instruction-log { margin-top: 15px; font-size: 0.9rem; color: #10b981; min-height: 40px; }
+.robot-picker { font-size: 1.2rem; margin-bottom: 10px; width: 100%; }
+.primary-btn { background: #38bdf8; color: #0f172a; padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; }
+h1 { text-align: center; color: #38bdf8; }
