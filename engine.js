@@ -1,86 +1,87 @@
 let charts = {};
 
 window.onload = () => {
-    // Populate Select Menus
-    const sWord = document.getElementById('startWord');
-    const eWord = document.getElementById('endWord');
-    const r1 = document.getElementById('robot1Select');
-    const r2 = document.getElementById('robot2Select');
-
-    Object.keys(DICTIONARY).forEach(w => {
-        sWord.add(new Option(w, w));
-        eWord.add(new Option(w, w));
-    });
-    eWord.selectedIndex = 1; // Default to different words
-
-    Object.keys(ROBOTS).forEach(r => {
-        r1.add(new Option(r, r));
-        r2.add(new Option(r, r));
-    });
-    r2.selectedIndex = 1; // Default to different robots
-
-    // Initialize Charts
+    refreshUI();
     charts.robot1 = initChart('canvas1');
     charts.robot2 = initChart('canvas2');
-
     document.getElementById('transitionBtn').onclick = runTranslation;
-    runTranslation(); // Run once on load
 };
 
-function initChart(canvasId) {
-    return new Chart(document.getElementById(canvasId), {
+function initChart(id) {
+    return new Chart(document.getElementById(id), {
         type: 'line',
         data: {
-            labels: Array.from({length: 21}, (_, i) => i * 5 + "%"),
+            labels: Array.from({length: 11}, (_, i) => i * 10 + "%"),
             datasets: [
-                { label: 'Perceived Sensation (The Word)', borderColor: '#facc15', data: [], tension: 0.4 },
-                { label: 'Robot Effort (The Physical)', borderColor: '#38bdf8', borderDash: [5, 5], data: [], tension: 0.4 }
+                { label: 'Sensation', borderColor: '#facc15', data: [], tension: 0.3 },
+                { label: 'Robot Effort', borderColor: '#38bdf8', borderDash: [5, 5], data: [], tension: 0.3 }
             ]
         },
-        options: { responsive: true, scales: { y: { min: 0, max: 1 } } }
+        options: { scales: { y: { min: 0, max: 1.2 } } }
     });
+}
+
+function refreshUI() {
+    const sW = document.getElementById('startWord'), eW = document.getElementById('endWord');
+    const r1 = document.getElementById('robot1Select'), r2 = document.getElementById('robot2Select');
+    const wList = document.getElementById('wordList'), rList = document.getElementById('robotList');
+
+    [sW, eW, r1, r2, wList, rList].forEach(el => el.innerHTML = '');
+
+    Object.keys(DICTIONARY).forEach(w => {
+        sW.add(new Option(w, w)); eW.add(new Option(w, w));
+        wList.innerHTML += `<div class='item'>${w}</div>`;
+    });
+    Object.keys(ROBOTS).forEach(r => {
+        r1.add(new Option(r, r)); r2.add(new Option(r, r));
+        rList.innerHTML += `<div class='item'>${r}</div>`;
+    });
+}
+
+function saveWord() {
+    const name = document.getElementById('newWordName').value.toUpperCase();
+    if(!name) return;
+    DICTIONARY[name] = {
+        Looming: parseFloat(document.getElementById('valLooming').value),
+        Brightness: parseFloat(document.getElementById('valBrightness').value),
+        Loudness: parseFloat(document.getElementById('valLoudness').value)
+    };
+    refreshUI();
+}
+
+function saveRobot() {
+    const name = document.getElementById('newRobotName').value;
+    const tool = document.getElementById('toolName').value;
+    const ant = document.getElementById('toolAntenna').value;
+    if(!name || !tool) return;
+    ROBOTS[name] = { capabilities: { [tool]: ant } };
+    refreshUI();
 }
 
 function runTranslation() {
-    const startKey = document.getElementById('startWord').value;
-    const endKey = document.getElementById('endWord').value;
-    
-    updateRobot('robot1', document.getElementById('robot1Select').value, startKey, endKey);
-    updateRobot('robot2', document.getElementById('robot2Select').value, startKey, endKey);
+    updateView('robot1', document.getElementById('robot1Select').value);
+    updateView('robot2', document.getElementById('robot2Select').value);
 }
 
-function updateRobot(chartKey, robotName, sKey, eKey) {
+function updateView(key, robotName) {
+    const start = DICTIONARY[document.getElementById('startWord').value];
+    const end = DICTIONARY[document.getElementById('endWord').value];
     const robot = ROBOTS[robotName];
-    const start = DICTIONARY[sKey];
-    const end = DICTIONARY[eKey];
-    const chart = charts[chartKey];
-    const log = document.getElementById(chartKey === 'robot1' ? 'log1' : 'log2');
+    const tool = Object.keys(robot.capabilities)[0];
+    const antenna = robot.capabilities[tool];
+    const n = HUMAN_ANTENNAS[antenna].n;
 
-    // Pick the first capability as the primary "antenna" for the demo
-    const toolName = Object.keys(robot.capabilities)[0];
-    const antennaName = robot.capabilities[toolName];
-    const n = HUMAN_ANTENNAS[antennaName].n;
+    let sData = [], eData = [];
+    const sVal = start[antenna] || 0, eVal = end[antenna] || 0;
 
-    const sVal = start[antennaName] || 0;
-    const eVal = end[antennaName] || 0;
-
-    let sensationData = [];
-    let effortData = [];
-
-    for (let i = 0; i <= 20; i++) {
-        let t = i / 20;
-        // Linear transition in sensation space
+    for(let i=0; i<=10; i++) {
+        let t = i/10;
         let s = sVal + (eVal - sVal) * t;
-        // Inverse Stevens' Power Law to find required Robot Effort
-        let effort = Math.pow(s, 1 / n);
-
-        sensationData.push(s);
-        effortData.push(effort);
+        sData.push(s);
+        eData.push(Math.pow(s, 1/n));
     }
-
-    chart.data.datasets[0].data = sensationData;
-    chart.data.datasets[1].data = effortData;
-    chart.update();
-
-    log.innerHTML = `TRANSLATION: To move <strong>${sKey} → ${eKey}</strong>, ${robotName} uses <strong>${toolName}</strong> adjusted to human ${antennaName} sensitivity (n=${n}).`;
+    charts[key].data.datasets[0].data = sData;
+    charts[key].data.datasets[1].data = eData;
+    charts[key].update();
+    document.getElementById('log' + key.slice(-1)).innerText = `Using ${tool} (n=${n})`;
 }
