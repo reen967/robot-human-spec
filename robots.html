@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Configurator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Robot Configurator</h1>
+        <p class="subtitle">Define robot capabilities and their maximum output.</p>
+        <nav>
+            <a href="index.html">Translator</a>
+            <a href="dictionary.html">Word Dictionary</a>
+            <a href="robots.html" class="active">Robot Configurator</a>
+        </nav>
+
+        <div class="dashboard-section">
+            <h2>Create New Robot</h2>
+            <div class="form-group">
+                <label for="newRobotName">Robot Name:</label>
+                <input type="text" id="newRobotName" placeholder="e.g., OmniBot, DeskLamp">
+            </div>
+            
+            <h3>Capabilities:</h3>
+            <div id="robotCapabilities" class="capability-list">
+                </div>
+            <button id="addCapabilityBtn" class="secondary-btn">Add Another Capability</button>
+            <button id="addRobotBtn" class="primary-btn">Add Robot</button>
+
+            <h2>Current Robots</h2>
+            <div id="currentRobots" class="list-display">
+                </div>
+        </div>
+    </div>
+    <script src="data.js"></script>
+    <script src="engine.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const newRobotNameInput = document.getElementById('newRobotName');
+            const robotCapabilitiesDiv = document.getElementById('robotCapabilities');
+            const addCapabilityBtn = document.getElementById('addCapabilityBtn');
+            const addRobotBtn = document.getElementById('addRobotBtn');
+            const currentRobotsDiv = document.getElementById('currentRobots');
+
+            let capabilityCounter = 0;
+
+            function addCapabilityInput(initialTool = '', initialAntenna = '', initialMax = 100) {
+                capabilityCounter++;
+                const capabilityDiv = document.createElement('div');
+                capabilityDiv.className = 'capability-item';
+                capabilityDiv.innerHTML = `
+                    <div class="form-group">
+                        <label>Tool Name:</label>
+                        <input type="text" class="tool-name" value="${initialTool}" placeholder="e.g., Spine, Speaker">
+                    </div>
+                    <div class="form-group">
+                        <label>Maps to Antenna:</label>
+                        <select class="tool-antenna"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Output:</label>
+                        <input type="number" class="tool-max-output" value="${initialMax}" min="1">
+                    </div>
+                    <button class="remove-capability-btn">X</button>
+                `;
+                robotCapabilitiesDiv.appendChild(capabilityDiv);
+
+                const antennaSelect = capabilityDiv.querySelector('.tool-antenna');
+                for (const antennaName in HUMAN_ANTENNAS) {
+                    const option = document.createElement('option');
+                    option.value = antennaName;
+                    option.textContent = antennaName;
+                    antennaSelect.appendChild(option);
+                }
+                antennaSelect.value = initialAntenna; // Set initial value if provided
+
+                capabilityDiv.querySelector('.remove-capability-btn').addEventListener('click', () => {
+                    capabilityDiv.remove();
+                });
+            }
+
+            function displayCurrentRobots() {
+                currentRobotsDiv.innerHTML = '';
+                for (const robotName in ROBOTS) {
+                    const robot = ROBOTS[robotName];
+                    const robotDiv = document.createElement('div');
+                    robotDiv.className = 'item-card';
+                    let capabilitiesHtml = '<ul>';
+                    for (const toolName in robot.capabilities) {
+                        const cap = robot.capabilities[toolName];
+                        capabilitiesHtml += `<li><strong>${toolName}</strong>: Maps to ${cap.antenna}, Max: ${cap.max_output}</li>`;
+                    }
+                    capabilitiesHtml += '</ul>';
+                    robotDiv.innerHTML = `
+                        <h3>${robotName}</h3>
+                        <h4>Capabilities:</h4>
+                        ${capabilitiesHtml}
+                    `;
+                    currentRobotsDiv.appendChild(robotDiv);
+                }
+            }
+
+            addCapabilityBtn.addEventListener('click', () => addCapabilityInput());
+
+            addRobotBtn.addEventListener('click', () => {
+                const name = newRobotNameInput.value.trim();
+                if (!name) {
+                    alert('Please enter a robot name.');
+                    return;
+                }
+
+                const newCapabilities = {};
+                const capabilityItems = robotCapabilitiesDiv.querySelectorAll('.capability-item');
+                if (capabilityItems.length === 0) {
+                    alert('Please add at least one capability for the robot.');
+                    return;
+                }
+
+                let isValid = true;
+                capabilityItems.forEach(item => {
+                    const toolName = item.querySelector('.tool-name').value.trim();
+                    const antenna = item.querySelector('.tool-antenna').value;
+                    const maxOutput = parseFloat(item.querySelector('.tool-max-output').value);
+
+                    if (!toolName || isNaN(maxOutput) || maxOutput <= 0) {
+                        isValid = false;
+                        alert('Please fill in all capability fields correctly.');
+                        return;
+                    }
+                    newCapabilities[toolName] = { antenna: antenna, max_output: maxOutput };
+                });
+
+                if (!isValid) return;
+
+                ROBOTS[name] = { capabilities: newCapabilities };
+                // In a real app, you'd save ROBOTS to a backend/localStorage here
+                alert(`Robot "${name}" added!`);
+                displayCurrentRobots();
+                newRobotNameInput.value = '';
+                robotCapabilitiesDiv.innerHTML = ''; // Clear capabilities
+                addCapabilityInput(); // Add first empty capability for next robot
+            });
+
+            addCapabilityInput(); // Add initial capability input field
+            displayCurrentRobots();
+        });
+    </script>
+</body>
+</html>
