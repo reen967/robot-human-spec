@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Dictionary</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Word Dictionary</h1>
+        <p class="subtitle">Define human "Words" by their desired perceptual effects.</p>
+        <nav>
+            <a href="index.html">Translator</a>
+            <a href="dictionary.html" class="active">Word Dictionary</a>
+            <a href="robots.html">Robot Configurator</a>
+        </nav>
+
+        <div class="dashboard-section">
+            <h2>Define New Word</h2>
+            <div class="form-group">
+                <label for="newWordName">Word Name:</label>
+                <input type="text" id="newWordName" placeholder="e.g., Curiosity, Urgent">
+            </div>
+            <div class="form-group">
+                <label for="newWordDescription">Description:</label>
+                <textarea id="newWordDescription" placeholder="A brief description of this word's intent."></textarea>
+            </div>
+
+            <h3>Target Antenna Effects (% of human max sensation)</h3>
+            <div id="antennaTargets" class="antenna-target-list">
+                </div>
+            <button id="addWordBtn" class="primary-btn">Add Word to Dictionary</button>
+
+            <h2>Current Dictionary</h2>
+            <div id="currentDictionary" class="list-display">
+                </div>
+        </div>
+    </div>
+    <script src="data.js"></script>
+    <script src="engine.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const newWordNameInput = document.getElementById('newWordName');
+            const newWordDescriptionInput = document.getElementById('newWordDescription');
+            const antennaTargetsDiv = document.getElementById('antennaTargets');
+            const addWordBtn = document.getElementById('addWordBtn');
+            const currentDictionaryDiv = document.getElementById('currentDictionary');
+
+            // Populate antenna target fields
+            for (const antennaName in HUMAN_ANTENNAS) {
+                const antennaDiv = document.createElement('div');
+                antennaDiv.className = 'form-group';
+                antennaDiv.innerHTML = `
+                    <label>${antennaName} (${HUMAN_ANTENNAS[antennaName].desc}):</label>
+                    <input type="range" id="target-${antennaName}" min="0" max="100" value="0">
+                    <span id="target-${antennaName}-val">0%</span>
+                `;
+                antennaTargetsDiv.appendChild(antennaDiv);
+
+                document.getElementById(`target-${antennaName}`).addEventListener('input', (event) => {
+                    document.getElementById(`target-${antennaName}-val`).textContent = `${event.target.value}%`;
+                });
+            }
+
+            function displayCurrentDictionary() {
+                currentDictionaryDiv.innerHTML = '';
+                for (const wordName in DICTIONARY) {
+                    const word = DICTIONARY[wordName];
+                    const wordDiv = document.createElement('div');
+                    wordDiv.className = 'item-card';
+                    let targetsHtml = '<ul>';
+                    for (const antenna in word.targets) {
+                        targetsHtml += `<li>${antenna}: ${(word.targets[antenna] * 100).toFixed(0)}%</li>`;
+                    }
+                    targetsHtml += '</ul>';
+                    wordDiv.innerHTML = `
+                        <h3>${wordName}</h3>
+                        <p>${word.description}</p>
+                        <h4>Target Effects:</h4>
+                        ${targetsHtml}
+                    `;
+                    currentDictionaryDiv.appendChild(wordDiv);
+                }
+            }
+
+            addWordBtn.addEventListener('click', () => {
+                const name = newWordNameInput.value.trim();
+                const description = newWordDescriptionInput.value.trim();
+                if (!name) {
+                    alert('Please enter a word name.');
+                    return;
+                }
+
+                const newTargets = {};
+                for (const antennaName in HUMAN_ANTENNAS) {
+                    const value = parseFloat(document.getElementById(`target-${antennaName}`).value) / 100;
+                    if (value > 0) { // Only add if there's a target effect
+                        newTargets[antennaName] = value;
+                    }
+                }
+
+                if (Object.keys(newTargets).length === 0) {
+                    alert('Please define at least one antenna target for the word.');
+                    return;
+                }
+
+                DICTIONARY[name] = { targets: newTargets, description: description };
+                // In a real app, you'd save DICTIONARY to a backend/localStorage here
+                alert(`Word "${name}" added!`);
+                displayCurrentDictionary();
+                newWordNameInput.value = '';
+                newWordDescriptionInput.value = '';
+                for (const antennaName in HUMAN_ANTENNAS) {
+                    document.getElementById(`target-${antennaName}`).value = 0;
+                    document.getElementById(`target-${antennaName}-val`).textContent = '0%';
+                }
+            });
+
+            displayCurrentDictionary();
+        });
+    </script>
+</body>
+</html>
