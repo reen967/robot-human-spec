@@ -2,88 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robot Language Translator</title>
+    <title>Robot Language Engine</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Robot-Human Language Dashboard</h1>
-        <p class="subtitle">Translate human "Words" into robot-specific actions.</p>
         <nav>
             <a href="index.html" class="active">Translator</a>
-            <a href="dictionary.html">Word Dictionary</a>
-            <a href="robots.html">Robot Configurator</a>
+            <a href="dictionary.html">Dictionary</a>
         </nav>
 
-        <div class="dashboard-section">
-            <div class="controls">
-                <label for="wordSelect">Select a Word:</label>
+        <div class="main-grid">
+            <div class="controls card">
+                <h3>Translation Settings</h3>
+                <label>Select Word:</label>
                 <select id="wordSelect"></select>
+                
+                <label>Target Robot:</label>
+                <select id="robotSelect"></select>
+                
+                <button id="playBtn" class="primary-btn">Play Word</button>
             </div>
 
-            <div id="wordDescription" class="description-box"></div>
+            <div class="visualizer card">
+                <h3>Sensation vs. Effort</h3>
+                <canvas id="plotCanvas"></canvas>
+            </div>
+        </div>
 
-            <div class="robot-comparison" id="robotComparison">
-                </div>
+        <div id="log" class="card">
+            <h4>Real-time Instruction Stream:</h4>
+            <div id="outputStream"></div>
         </div>
     </div>
     <script src="data.js"></script>
     <script src="engine.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const wordSelect = document.getElementById('wordSelect');
-            const robotComparison = document.getElementById('robotComparison');
-            const wordDescription = document.getElementById('wordDescription');
-
-            // Populate words dropdown
-            for (const wordName in DICTIONARY) {
-                const option = document.createElement('option');
-                option.value = wordName;
-                option.textContent = wordName;
-                wordSelect.appendChild(option);
-            }
-
-            function updateTranslation() {
-                const selectedWordName = wordSelect.value;
-                const selectedWord = DICTIONARY[selectedWordName];
-                
-                wordDescription.innerHTML = `<h3>${selectedWordName}</h3><p>${selectedWord.description}</p>`;
-                
-                let targetAntennasHtml = '<h4>Target Human Antenna Effects:</h4><ul>';
-                for (const antenna in selectedWord.targets) {
-                    targetAntennasHtml += `<li>${antenna}: <strong>${(selectedWord.targets[antenna] * 100).toFixed(0)}%</strong> of human sensation</li>`;
-                }
-                targetAntennasHtml += '</ul>';
-                wordDescription.innerHTML += targetAntennasHtml;
-
-
-                robotComparison.innerHTML = ''; // Clear previous comparisons
-
-                for (const robotName in ROBOTS) {
-                    const translationResult = translateWord(selectedWordName, robotName);
-                    
-                    const robotCard = document.createElement('div');
-                    robotCard.className = 'robot-card';
-                    robotCard.innerHTML = `<h3>${robotName}</h3>`;
-
-                    let capabilitiesHtml = '<h4>Robot Actions:</h4><ul>';
-                    translationResult.forEach(item => {
-                        if (item.status === "MISSING") {
-                            capabilitiesHtml += `<li class="missing">${item.antenna}: ${item.status}</li>`;
-                        } else {
-                            capabilitiesHtml += `<li>${item.tool} (${item.antenna}): <strong>${item.effort_percent}%</strong> effort</li>`;
-                        }
-                    });
-                    capabilitiesHtml += '</ul>';
-                    robotCard.innerHTML += capabilitiesHtml;
-                    robotComparison.appendChild(robotCard);
-                }
-            }
-
-            wordSelect.addEventListener('change', updateTranslation);
-            updateTranslation(); // Initial load
-        });
-    </script>
 </body>
 </html>
