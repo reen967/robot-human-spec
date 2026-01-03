@@ -2,40 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Robot Language Translator</title>
+    <title>Robot Language Construction Kit</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Robot-Human Word Translator</h1>
+        <h1>Robot-Human Language Kit</h1>
         
-        <div class="control-panel card">
+        <div class="card translator">
+            <h2>1. Universal Translator</h2>
             <div class="input-row">
                 <div class="input-group">
-                    <label>From (Start State):</label>
+                    <label>From Word:</label>
                     <select id="startWord"></select>
                 </div>
                 <div class="input-group">
-                    <label>To (New Word):</label>
+                    <label>To Word:</label>
                     <select id="endWord"></select>
                 </div>
             </div>
-            <button id="transitionBtn" class="primary-btn">Execute Cross-Robot Transition</button>
+            <button id="transitionBtn" class="primary-btn">Translate Transition</button>
+            <div class="comparison-grid">
+                <div class="robot-view">
+                    <select id="robot1Select"></select>
+                    <canvas id="canvas1"></canvas>
+                    <div id="log1" class="log"></div>
+                </div>
+                <div class="robot-view">
+                    <select id="robot2Select"></select>
+                    <canvas id="canvas2"></canvas>
+                    <div id="log2" class="log"></div>
+                </div>
+            </div>
         </div>
 
-        <div class="comparison-grid">
-            <div class="robot-column card">
-                <label>Robot A:</label>
-                <select id="robot1Select" class="robot-picker"></select>
-                <canvas id="canvas1"></canvas>
-                <div id="log1" class="instruction-log"></div>
+        <div class="editor-grid">
+            <div class="card editor">
+                <h2>2. Word Dictionary Editor</h2>
+                <div class="form-group">
+                    <input type="text" id="newWordName" placeholder="Word Name (e.g. THREAT)">
+                    <label>Looming (0-1):</label> <input type="number" id="valLooming" step="0.1" value="0">
+                    <label>Brightness (0-1):</label> <input type="number" id="valBrightness" step="0.1" value="0">
+                    <label>Loudness (0-1):</label> <input type="number" id="valLoudness" step="0.1" value="0">
+                    <button onclick="saveWord()" class="secondary-btn">Save Word</button>
+                </div>
+                <div id="wordList" class="list"></div>
             </div>
-            <div class="robot-column card">
-                <label>Robot B:</label>
-                <select id="robot2Select" class="robot-picker"></select>
-                <canvas id="canvas2"></canvas>
-                <div id="log2" class="instruction-log"></div>
+
+            <div class="card editor">
+                <h2>3. Robot Fleet Editor</h2>
+                <div class="form-group">
+                    <input type="text" id="newRobotName" placeholder="Robot Name (e.g. Drone)">
+                    <label>Primary Hardware Tool:</label>
+                    <input type="text" id="toolName" placeholder="e.g. Propeller">
+                    <label>Maps to Antenna:</label>
+                    <select id="toolAntenna">
+                        <option value="Looming">Looming</option>
+                        <option value="Brightness">Brightness</option>
+                        <option value="Loudness">Loudness</option>
+                    </select>
+                    <button onclick="saveRobot()" class="secondary-btn">Add Robot</button>
+                </div>
+                <div id="robotList" class="list"></div>
             </div>
         </div>
     </div>
